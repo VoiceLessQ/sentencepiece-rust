@@ -125,6 +125,31 @@ files exist, so `cargo test` never fails just because the oracle hasn't been
 generated yet. The oracle (Python `sentencepiece`) is only used to *produce* those
 files; the test itself, and the crate, need nothing but Rust.
 
+## Speed
+
+A rough throughput cross-check — [examples/bench.rs](examples/bench.rs) vs
+[oracle/bench_oracle.py](oracle/bench_oracle.py), same per-line workload, release
+build, single thread (numbers from one machine; run it yourself for yours):
+
+| model / corpus | encode, Rust | encode, Py `sp` | decode, Rust | decode, Py `sp` |
+|---|---|---|---|---|
+| BPE / English          |  6.7 MB/s |  2.9 MB/s | 28 MB/s | 5.9 MB/s |
+| Unigram / English      | 10.0 MB/s |  4.8 MB/s | 26 MB/s | 5.5 MB/s |
+| BPE + byte / Japanese  | 24.5 MB/s |  6.2 MB/s | 50 MB/s | 6.9 MB/s |
+
+Read this as "the port runs at a healthy native throughput", **not** "Rust beats
+C++". The Python column includes per-call CPython/FFI overhead (the C++ core in
+batch mode would be faster), and this crate is straightforward single-threaded
+inference tuned for *matching the oracle*, not for speed (e.g. the normaliser
+re-runs `common_prefix_search` per position). Even so, native Rust encode is
+~2–4× and decode ~5–7× the per-line Python path here, with no native dependency
+to link.
+
+```sh
+cargo run --release --example bench -- tests/models/botchan_1000_bpe.model <corpus> 50
+python oracle/bench_oracle.py        tests/models/botchan_1000_bpe.model <corpus> 50
+```
+
 ## License
 
 Apache-2.0, matching upstream SentencePiece. The bundled `tests/models/*.model`
