@@ -70,8 +70,11 @@ resolves these exact ties differently than portable `f32`; both segmentations
 are optimal. See the note in [src/unigram.rs](src/unigram.rs). The test counts
 these separately and only fails on a genuine (different-piece) mismatch.
 
-To reproduce the broad run, point `gen_oracle.py` at the upstream corpora under
-`../Reference/sentencepiece/data/` instead of the small `corpus_*.txt` files.
+To reproduce the broad run, point `gen_oracle.py` at a larger corpus instead of
+the small `corpus_*.txt` files — e.g. `botchan.txt` and `wagahaiwa_nekodearu.txt`
+from the upstream SentencePiece repo's
+[`data/`](https://github.com/google/sentencepiece/tree/master/data) directory.
+Those corpora are not vendored here; download them from the original source.
 
 ## Layout
 
@@ -90,8 +93,10 @@ tests/oracle.rs       differential test vs the Python oracle
 oracle/gen_oracle.py  generates oracle/cases.tsv from Python sentencepiece
 ```
 
-Each module names the reference file it ports in its header comment. The upstream
-source lives at `../Reference/sentencepiece` (local, gitignored).
+Each module names the reference file it ports in its header comment, from the
+upstream [google/sentencepiece](https://github.com/google/sentencepiece) source.
+That source is not vendored here — during development it sits as a local clone
+outside the repo; clone it from the original if you want to follow the ports.
 
 ## Try it
 
