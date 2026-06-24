@@ -19,8 +19,7 @@ Training is out of scope. A trained `.model` is loaded and used to tokenise.
 
 ## Correctness goal
 
-The aim of this crate is to match upstream SentencePiece exactly, not just come
-close. That goal shapes the rest of the design:
+The point of this crate is to match upstream SentencePiece exactly:
 
 - Every module is a line-by-line port of the reference file it names in its
   header, so its behaviour can be checked against the original.
@@ -31,11 +30,11 @@ close. That goal shapes the rest of the design:
   treated as a bug until it turns out to be an equally-optimal tie (the one
   documented precision fence).
 
-The rest follows from that goal rather than competing with it:
+Two things fall out of that:
 
 - Zero dependencies, so there is nothing to audit but this crate and `std`.
-- Speed is measured rather than assumed (see [Speed](#speed)), and never traded
-  against matching the oracle.
+- Speed is measured, not assumed (see [Speed](#speed)), and never traded against
+  matching the oracle.
 
 ## Why
 
