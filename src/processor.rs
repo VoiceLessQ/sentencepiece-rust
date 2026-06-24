@@ -54,14 +54,6 @@ impl SentencePieceProcessor {
 
     /// Encode `text` into a sequence of piece ids.
     pub fn encode(&self, text: &str) -> Result<Vec<i32>> {
-        // v0.1 guard: charsmap folding for non-ASCII isn't implemented yet, so
-        // refuse rather than emit wrong tokens. (Pure-ASCII input is exact.)
-        if self.normalizer.needs_charsmap() && !text.is_ascii() {
-            return Err(Error::Unsupported(
-                "non-ASCII input requires the charsmap normaliser (v0.2)",
-            ));
-        }
-
         let spans = match self.model.model_type {
             ModelType::Bpe => {
                 let norm = self.normalizer.normalize(text);

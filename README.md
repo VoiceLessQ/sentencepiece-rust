@@ -26,8 +26,8 @@ The scary parts of the upstream repo don't apply to inference:
 
 | Version | Scope | Verified against |
 |--------:|-------|------------------|
-| **v0.1** *(current)* | BPE segmentation; ASCII / whitespace normalisation; byte-fallback encode | Python `sentencepiece`, ASCII corpora |
-| v0.2 | Darts charsmap normaliser → full Unicode input | + Unicode corpora |
+| v0.1 | BPE segmentation; ASCII / whitespace normalisation; byte-fallback encode | Python `sentencepiece`, ASCII corpora |
+| **v0.2** *(current)* | Darts charsmap normaliser → full Unicode input | + Unicode corpora (full-width, ligatures, CJK, …) |
 | v0.3 | Unigram Viterbi segmentation (default model type) | + Unigram models |
 
 ## Layout
@@ -63,9 +63,10 @@ cargo run --example inspect -- tests/models/botchan_1000_bpe.model
 # reference implementation, used only to produce the oracle
 python -m pip install sentencepiece
 
-python oracle/gen_oracle.py \
-    tests/models/botchan_1000_bpe.model \
+python oracle/gen_oracle.py tests/models/botchan_1000_bpe.model \
     oracle/corpus_ascii.txt > oracle/cases.tsv
+python oracle/gen_oracle.py tests/models/botchan_1000_bpe.model \
+    oracle/corpus_unicode.txt >> oracle/cases.tsv
 
 cargo test
 ```

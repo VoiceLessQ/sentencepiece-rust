@@ -9,3 +9,16 @@ ab
 abc
    leading and trailing spaces
 supercalifragilisticexpialidocious
+don't can't won't it's they're
+e=mc^2 and 3.14159 plus 2+2=4
+C:\path\to\file.txt and /usr/local/bin
+https://example.com/page?q=test&n=42
+snake_case camelCase PascalCase kebab-case
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+!!!!! ????? ..... ----- =====
+The year was 1999, the cost was $19.95 each.
+foo(bar, baz); return x >= y && z != w;
+UPPER lower MiXeD 123 abc ABC
+space separated values here
+trailing spaces here
+emoji-free but tricky: <html> & "quotes" 'single'

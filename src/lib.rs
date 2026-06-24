@@ -8,9 +8,10 @@
 //! the reference source in `projects/Reference/sentencepiece`.
 //!
 //! # Status
-//! - **v0.1 (current):** BPE segmentation + ASCII/whitespace normalisation,
-//!   verified against the Python `sentencepiece` oracle on ASCII corpora.
-//! - **v0.2 (planned):** Darts charsmap normaliser → full Unicode input.
+//! - **v0.1:** BPE segmentation + ASCII/whitespace normalisation.
+//! - **v0.2 (current):** Darts charsmap normaliser → full Unicode input
+//!   (full-width folding, ligatures, CJK, …), verified against the Python
+//!   `sentencepiece` oracle.
 //! - **v0.3 (planned):** Unigram Viterbi segmentation (the default model type).
 //!
 //! Training is intentionally out of scope — this crate loads a trained `.model`

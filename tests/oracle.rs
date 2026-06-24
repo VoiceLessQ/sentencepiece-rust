@@ -28,7 +28,8 @@ fn bpe_matches_python_oracle() {
     if !Path::new(CASES).exists() {
         eprintln!(
             "skipping: {CASES} not found. Generate it with:\n  \
-             python oracle/gen_oracle.py {MODEL} oracle/corpus_ascii.txt > {CASES}"
+             python oracle/gen_oracle.py {MODEL} oracle/corpus_ascii.txt > {CASES}\n  \
+             python oracle/gen_oracle.py {MODEL} oracle/corpus_unicode.txt >> {CASES}"
         );
         return;
     }

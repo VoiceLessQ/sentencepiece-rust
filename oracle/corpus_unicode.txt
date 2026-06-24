@@ -1,0 +1,15 @@
+café résumé naïve façade
+ＨＥＬＬＯ ＷＯＲＬＤ
+ｔｈｅ ｑｕｉｃｋ ｂｒｏｗｎ ｆｏｘ
+ﬁ ﬂ ﬀ ﬃ ligatures
+①②③ circled numbers
+Ⅻ roman numeral twelve
+Ångström and Ω ohm
+Test テスト with 日本語 mixed
+Привет мир Cyrillic text
+emoji 🌍 globe and 🎉 party
+ｓｐａｃｅｓ everywhere here
+½ ¾ fractions and ² ³ powers
+ＡＢＣ123 fullwidth digits ４５６
+naïve café — em dash test
+combining á accent
