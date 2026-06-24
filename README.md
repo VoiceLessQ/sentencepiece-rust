@@ -27,8 +27,10 @@ The scary parts of the upstream repo don't apply to inference:
 | Version | Scope | Verified against |
 |--------:|-------|------------------|
 | v0.1 | BPE segmentation; ASCII / whitespace normalisation; byte-fallback encode | Python `sentencepiece`, ASCII corpora |
-| **v0.2** *(current)* | Darts charsmap normaliser → full Unicode input | + Unicode corpora (full-width, ligatures, CJK, …) |
-| v0.3 | Unigram Viterbi segmentation (default model type) | + Unigram models |
+| v0.2 | Darts charsmap normaliser → full Unicode input | + Unicode corpora (full-width, ligatures, CJK, …) |
+| **v0.3** *(current)* | Unigram Viterbi segmentation (default model type) | + Unigram model; 78 BPE+Unigram cases match |
+
+Inference is now feature-complete for both BPE and Unigram models.
 
 ## Layout
 
@@ -37,10 +39,10 @@ src/
   proto.rs       hand-written proto2 wire reader (no deps)
   model.rs       ModelProto -> typed struct (pieces, flags, normalizer spec)
   vocab.rs       piece <-> id maps, scores, byte-fallback ids
-  normalizer.rs  whitespace/▁ normalisation (charsmap path: v0.2)
-  bpe.rs         BPE merge encoder  [v0.1 focus]
-  unigram.rs     Unigram Viterbi    [v0.3 stub]
-  trie.rs        Darts double-array  [v0.2 stub]
+  normalizer.rs  whitespace/▁ normalisation + Darts charsmap replay
+  bpe.rs         BPE merge encoder
+  unigram.rs     Unigram Viterbi best-path (+ piece prefix-trie)
+  trie.rs        Darts double-array (common_prefix_search / traverse)
   processor.rs   SentencePieceProcessor: load + encode/decode orchestration
 examples/inspect.rs   load a model and dump a summary
 tests/oracle.rs       differential test vs the Python oracle
@@ -63,10 +65,16 @@ cargo run --example inspect -- tests/models/botchan_1000_bpe.model
 # reference implementation, used only to produce the oracle
 python -m pip install sentencepiece
 
+# BPE model
 python oracle/gen_oracle.py tests/models/botchan_1000_bpe.model \
     oracle/corpus_ascii.txt > oracle/cases.tsv
 python oracle/gen_oracle.py tests/models/botchan_1000_bpe.model \
     oracle/corpus_unicode.txt >> oracle/cases.tsv
+# Unigram model
+python oracle/gen_oracle.py tests/models/test_oss_model_unigram.model \
+    oracle/corpus_ascii.txt > oracle/cases_unigram.tsv
+python oracle/gen_oracle.py tests/models/test_oss_model_unigram.model \
+    oracle/corpus_unicode.txt >> oracle/cases_unigram.tsv
 
 cargo test
 ```

@@ -2,4 +2,4 @@
 Cargo.lock
 
 # Generated differential-test oracle (regenerate with oracle/gen_oracle.py)
-/oracle/cases.tsv
+/oracle/cases*.tsv

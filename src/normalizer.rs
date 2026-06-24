@@ -132,11 +132,8 @@ impl Normalizer {
             let mut sp: &[u8] = sp_cow.as_ref();
 
             // Drop leading spaces if the previous piece ended in whitespace.
-            while is_prev_space {
-                match sp.first() {
-                    Some(&b' ') => sp = &sp[1..],
-                    _ => break,
-                }
+            while is_prev_space && sp.first() == Some(&b' ') {
+                sp = &sp[1..];
             }
 
             if !sp.is_empty() {

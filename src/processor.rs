@@ -9,12 +9,14 @@ use crate::bpe;
 use crate::error::{Error, Result};
 use crate::model::{ModelProto, ModelType};
 use crate::normalizer::{Normalizer, SPACE_SYMBOL};
+use crate::unigram::Unigram;
 use crate::vocab::Vocab;
 
 pub struct SentencePieceProcessor {
     model: ModelProto,
     vocab: Vocab,
     normalizer: Normalizer,
+    unigram: Option<Unigram>,
 }
 
 impl SentencePieceProcessor {
@@ -29,10 +31,15 @@ impl SentencePieceProcessor {
         let model = ModelProto::parse(bytes)?;
         let vocab = Vocab::from_model(&model);
         let normalizer = Normalizer::new(&model.normalizer, model.treat_whitespace_as_suffix);
+        let unigram = match model.model_type {
+            ModelType::Unigram => Some(Unigram::from_vocab(&vocab)),
+            _ => None,
+        };
         Ok(SentencePieceProcessor {
             model,
             vocab,
             normalizer,
+            unigram,
         })
     }
 
@@ -54,19 +61,20 @@ impl SentencePieceProcessor {
 
     /// Encode `text` into a sequence of piece ids.
     pub fn encode(&self, text: &str) -> Result<Vec<i32>> {
+        let norm = self.normalizer.normalize(text);
+        if norm.is_empty() {
+            return Ok(Vec::new());
+        }
+        let nb = norm.as_bytes();
+
         let spans = match self.model.model_type {
-            ModelType::Bpe => {
-                let norm = self.normalizer.normalize(text);
-                if norm.is_empty() {
-                    return Ok(Vec::new());
-                }
-                bpe::encode(norm.as_bytes(), &self.vocab)
-                    .into_iter()
-                    .map(|s| (norm.as_bytes()[s.start..s.start + s.len].to_vec(), s.id))
-                    .collect::<Vec<_>>()
-            }
+            ModelType::Bpe => bpe::encode(nb, &self.vocab),
             ModelType::Unigram => {
-                return Err(Error::Unsupported("Unigram model (v0.3)"));
+                let u = self
+                    .unigram
+                    .as_ref()
+                    .ok_or(Error::Model("unigram model not initialised".into()))?;
+                u.encode(nb, &self.vocab)
             }
             ModelType::Word | ModelType::Char => {
                 return Err(Error::Unsupported("Word/Char models"));
@@ -78,11 +86,12 @@ impl SentencePieceProcessor {
         // continuous run of unknown pieces into a single <unk>.
         let mut ids = Vec::with_capacity(spans.len());
         let mut prev_unk = false;
-        for (bytes, id) in spans {
+        for span in spans {
+            let id = span.id;
             let is_unk = id == self.vocab.unk_id;
             if is_unk && self.vocab.byte_fallback {
                 // Decompose the unknown piece into its raw UTF-8 bytes.
-                for &b in &bytes {
+                for &b in &nb[span.start..span.start + span.len] {
                     let bid = self.vocab.byte_id(b);
                     ids.push(if bid >= 0 { bid } else { self.vocab.unk_id });
                 }

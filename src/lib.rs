@@ -8,11 +8,12 @@
 //! the reference source in `projects/Reference/sentencepiece`.
 //!
 //! # Status
+//! Inference is feature-complete for BPE and Unigram models, verified against
+//! the Python `sentencepiece` oracle:
 //! - **v0.1:** BPE segmentation + ASCII/whitespace normalisation.
-//! - **v0.2 (current):** Darts charsmap normaliser → full Unicode input
-//!   (full-width folding, ligatures, CJK, …), verified against the Python
-//!   `sentencepiece` oracle.
-//! - **v0.3 (planned):** Unigram Viterbi segmentation (the default model type).
+//! - **v0.2:** Darts charsmap normaliser → full Unicode input (full-width
+//!   folding, ligatures, CJK, …).
+//! - **v0.3 (current):** Unigram Viterbi segmentation (the default model type).
 //!
 //! Training is intentionally out of scope — this crate loads a trained `.model`
 //! and tokenises with it.

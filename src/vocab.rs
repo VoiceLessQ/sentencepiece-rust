@@ -94,6 +94,16 @@ impl Vocab {
     pub fn byte_id(&self, b: u8) -> i32 {
         self.byte_to_id[b as usize]
     }
+
+    /// Pieces that participate in segmentation (NORMAL + USER_DEFINED), as
+    /// `(bytes, id)`. Used to build the Unigram trie; mirrors the membership of
+    /// the C++ `pieces_` map minus UNUSED (which is skipped on match anyway).
+    pub fn segmentable_pieces(&self) -> impl Iterator<Item = (&[u8], i32)> {
+        self.pieces.iter().enumerate().filter_map(|(i, (p, _, k))| {
+            matches!(k, PieceType::Normal | PieceType::UserDefined)
+                .then_some((p.as_bytes(), i as i32))
+        })
+    }
 }
 
 /// `"<0x3A>"` -> `Some(0x3A)`; anything else -> `None`.

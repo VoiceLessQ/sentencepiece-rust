@@ -84,8 +84,8 @@ pub fn encode(norm: &[u8], vocab: &Vocab) -> Vec<Span> {
         i += clen;
     }
     let n = symbols.len();
-    for k in 0..n {
-        symbols[k].next = if k + 1 < n { (k + 1) as i64 } else { -1 };
+    for (k, sym) in symbols.iter_mut().enumerate() {
+        sym.next = if k + 1 < n { (k + 1) as i64 } else { -1 };
     }
 
     let mut agenda: BinaryHeap<Pair> = BinaryHeap::new();
