@@ -7,7 +7,7 @@ use std::path::Path;
 
 use crate::bpe;
 use crate::error::{Error, Result};
-use crate::model::{ModelProto, ModelType};
+use crate::model::{ModelProto, ModelType, PieceType};
 use crate::normalizer::{Normalizer, SPACE_SYMBOL};
 use crate::unigram::Unigram;
 use crate::vocab::Vocab;
@@ -107,18 +107,74 @@ impl SentencePieceProcessor {
 
     /// Decode a sequence of ids back into text.
     ///
-    /// v0.1 covers the common path (normal pieces + `▁` -> space). Byte-piece
-    /// reassembly (`<0xXX>` runs -> UTF-8) is a follow-up once byte-fallback
-    /// encode is verified.
+    /// Faithful port of `SentencePieceProcessor::Decode`: control symbols vanish,
+    /// `<unk>` becomes the unk surface, the single dummy-prefix `▁` is stripped,
+    /// remaining `▁` become spaces, and runs of `<0xXX>` byte pieces are
+    /// reassembled into UTF-8 (invalid sequences -> U+FFFD).
     pub fn decode(&self, ids: &[i32]) -> Result<String> {
-        let mut out = String::new();
+        let piece_size = self.vocab.len() as i32;
+        let mut text = String::new();
+        let mut byte_run: Vec<u8> = Vec::new();
+        let mut is_bos_ws = true;
+        let mut bos_ws_seen = false;
+
         for &id in ids {
-            match self.vocab.id_to_piece(id) {
-                Some(piece) => out.push_str(piece),
-                None => return Err(Error::Model(format!("id {id} out of range"))),
+            if id < 0 || id >= piece_size {
+                return Err(Error::Model(format!("id {id} out of range")));
+            }
+            let kind = self.vocab.kind(id).unwrap_or(PieceType::Normal);
+            let piece = self.vocab.id_to_piece(id).unwrap_or("");
+
+            if kind == PieceType::Byte {
+                if let Some(b) = crate::vocab::piece_to_byte(piece) {
+                    byte_run.push(b);
+                }
+                continue;
+            }
+
+            // Flush any pending byte run as UTF-8 before handling this piece.
+            flush_bytes(&mut text, &mut byte_run);
+            if bos_ws_seen || !text.is_empty() {
+                is_bos_ws = false;
+            }
+            let (decoded, new_bos) = self.decode_piece(piece, kind, is_bos_ws);
+            bos_ws_seen = new_bos;
+            text.push_str(&decoded);
+        }
+        flush_bytes(&mut text, &mut byte_run);
+        Ok(text)
+    }
+
+    /// Surface for one non-byte piece, plus whether it consumed a bos whitespace.
+    /// Ports the `DecodeSentencePiece` lambda.
+    fn decode_piece(&self, piece: &str, kind: PieceType, is_bos_ws: bool) -> (String, bool) {
+        match kind {
+            PieceType::Control => return (String::new(), false),
+            PieceType::Unknown => return (self.model.unk_surface.clone(), false),
+            _ => {}
+        }
+
+        let mut p = piece;
+        let mut has_bos_ws = false;
+        let ns = &self.model.normalizer;
+        if is_bos_ws && (ns.add_dummy_prefix || ns.remove_extra_whitespaces) {
+            if let Some(stripped) = p.strip_prefix(SPACE_SYMBOL) {
+                p = stripped;
+                has_bos_ws = true;
+            }
+            if ns.remove_extra_whitespaces {
+                has_bos_ws = false;
             }
         }
-        let detok = out.replace(SPACE_SYMBOL, " ");
-        Ok(detok.trim_start().to_string())
+        (p.replace(SPACE_SYMBOL, " "), has_bos_ws)
+    }
+}
+
+/// Append a run of raw bytes to `text` as UTF-8, mapping invalid sequences to
+/// U+FFFD (mirrors `ProcessBytePieces`).
+fn flush_bytes(text: &mut String, run: &mut Vec<u8>) {
+    if !run.is_empty() {
+        text.push_str(&String::from_utf8_lossy(run));
+        run.clear();
     }
 }

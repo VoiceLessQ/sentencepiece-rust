@@ -16,6 +16,10 @@ const SUITES: &[(&str, &str)] = &[
         "tests/models/test_oss_model_unigram.model",
         "oracle/cases_unigram.tsv",
     ),
+    (
+        "tests/models/wagahaiwa_2000_bpe_byte.model",
+        "oracle/cases_byte.tsv",
+    ),
 ];
 
 fn hex_decode(s: &str) -> Vec<u8> {
@@ -39,20 +43,36 @@ fn verify(model: &str, cases: &str) -> usize {
         if line.is_empty() {
             continue;
         }
-        let (hex_text, ids_str) = line.split_once('\t').expect("malformed case line");
+        let mut cols = line.split('\t');
+        let hex_text = cols.next().expect("missing text column");
+        let ids_str = cols.next().expect("missing ids column");
+        let hex_decoded = cols.next().expect("missing decoded column");
+
         let text = String::from_utf8(hex_decode(hex_text)).expect("utf8 text");
         let expected: Vec<i32> = ids_str
             .split_whitespace()
             .map(|t| t.parse().unwrap())
             .collect();
+        let expected_decoded = String::from_utf8(hex_decode(hex_decoded)).expect("utf8 decoded");
 
+        // encode: text -> ids
         let got = sp.encode(&text).expect("encode");
         assert_eq!(
             got,
             expected,
-            "[{model}] mismatch on line {} for input {:?}",
+            "[{model}] encode mismatch on line {} for input {:?}",
             lineno + 1,
             text
+        );
+
+        // decode: ids -> text
+        let got_decoded = sp.decode(&expected).expect("decode");
+        assert_eq!(
+            got_decoded,
+            expected_decoded,
+            "[{model}] decode mismatch on line {} for ids {:?}",
+            lineno + 1,
+            expected
         );
         checked += 1;
     }
@@ -68,11 +88,10 @@ fn matches_python_oracle() {
         .collect();
     if !missing.is_empty() {
         eprintln!(
-            "skipping: missing oracle file(s) {missing:?}. Generate with:\n  \
-             python oracle/gen_oracle.py tests/models/botchan_1000_bpe.model oracle/corpus_ascii.txt > oracle/cases.tsv\n  \
-             python oracle/gen_oracle.py tests/models/botchan_1000_bpe.model oracle/corpus_unicode.txt >> oracle/cases.tsv\n  \
-             python oracle/gen_oracle.py tests/models/test_oss_model_unigram.model oracle/corpus_ascii.txt > oracle/cases_unigram.tsv\n  \
-             python oracle/gen_oracle.py tests/models/test_oss_model_unigram.model oracle/corpus_unicode.txt >> oracle/cases_unigram.tsv"
+            "skipping: missing oracle file(s) {missing:?}. \
+             Generate them by running oracle/gen_oracle.py for each fixture over \
+             corpus_ascii.txt (>) then corpus_unicode.txt (>>); see README.md for \
+             the exact commands (cases.tsv, cases_unigram.tsv, cases_byte.tsv)."
         );
         return;
     }

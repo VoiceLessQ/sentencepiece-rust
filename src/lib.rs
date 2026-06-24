@@ -13,10 +13,12 @@
 //! - **v0.1:** BPE segmentation + ASCII/whitespace normalisation.
 //! - **v0.2:** Darts charsmap normaliser → full Unicode input (full-width
 //!   folding, ligatures, CJK, …).
-//! - **v0.3 (current):** Unigram Viterbi segmentation (the default model type).
+//! - **v0.3 (current):** Unigram Viterbi segmentation (the default model type),
+//!   plus faithful decode (byte-piece reassembly, unk surface, dummy-prefix).
 //!
-//! Training is intentionally out of scope — this crate loads a trained `.model`
-//! and tokenises with it.
+//! Encode *and* decode are verified against the oracle across BPE, Unigram, and
+//! byte-fallback models (117 cases). Training is intentionally out of scope —
+//! this crate loads a trained `.model` and tokenises with it.
 //!
 //! # Example
 //! ```no_run

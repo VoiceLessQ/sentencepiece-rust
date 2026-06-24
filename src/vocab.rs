@@ -108,7 +108,7 @@ impl Vocab {
 
 /// `"<0x3A>"` -> `Some(0x3A)`; anything else -> `None`.
 /// Matches `PieceToByte` in `model_interface.cc`.
-fn piece_to_byte(piece: &str) -> Option<u8> {
+pub(crate) fn piece_to_byte(piece: &str) -> Option<u8> {
     let bytes = piece.as_bytes();
     if bytes.len() == 6 && &bytes[..3] == b"<0x" && bytes[5] == b'>' {
         let hi = (bytes[3] as char).to_digit(16)?;

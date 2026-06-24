@@ -3,11 +3,12 @@
 
 For each input line we emit one TSV record:
 
-    <hex(utf8(text))> \t <id id id ...>
+    <hex(utf8(text))> \t <id id id ...> \t <hex(utf8(decode(ids)))>
 
-ids are the canonical correctness signal (they fully determine the segmentation).
-Text is hex-encoded so it can carry any bytes without escaping headaches; the
-Rust harness (tests/oracle.rs) hex-decodes and compares.
+The ids are the canonical encode signal (they fully determine the segmentation);
+the third column is the oracle's decode of those ids, so the Rust harness checks
+the decode path too. Text is hex-encoded so it can carry any bytes without
+escaping headaches; the Rust harness (tests/oracle.rs) hex-decodes and compares.
 
 Usage:
     python gen_oracle.py <model.model> <corpus.txt> > cases.tsv
@@ -41,8 +42,12 @@ def main() -> int:
             if not text:
                 continue
             ids = sp.encode(text, out_type=int)
+            decoded = sp.decode(ids)
             hex_text = text.encode("utf-8").hex()
-            sys.stdout.write(hex_text + "\t" + " ".join(map(str, ids)) + "\n")
+            hex_decoded = decoded.encode("utf-8").hex()
+            sys.stdout.write(
+                hex_text + "\t" + " ".join(map(str, ids)) + "\t" + hex_decoded + "\n"
+            )
 
     return 0
 

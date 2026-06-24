@@ -79,6 +79,8 @@ pub struct ModelProto {
     pub bos_id: i32,
     pub eos_id: i32,
     pub pad_id: i32,
+    /// Surface emitted for `<unk>` on decode (`TrainerSpec.unk_surface`).
+    pub unk_surface: String,
     pub normalizer: NormalizerSpec,
 }
 
@@ -94,6 +96,8 @@ impl ModelProto {
             bos_id: 1,
             eos_id: 2,
             pad_id: -1,
+            // proto2 default for unk_surface: " \xE2\x81\x87 " (space, U+2047, space).
+            unk_surface: " \u{2047} ".to_string(),
             normalizer: NormalizerSpec::default(),
         };
 
@@ -178,6 +182,11 @@ fn parse_trainer_spec(bytes: &[u8], model: &mut ModelProto) -> Result<()> {
             41 => model.bos_id = value.as_i32().unwrap_or(1),
             42 => model.eos_id = value.as_i32().unwrap_or(2),
             43 => model.pad_id = value.as_i32().unwrap_or(-1),
+            44 => {
+                if let Some(s) = value.as_str() {
+                    model.unk_surface = s;
+                }
+            }
             _ => {}
         }
     }

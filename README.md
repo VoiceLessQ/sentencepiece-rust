@@ -28,9 +28,11 @@ The scary parts of the upstream repo don't apply to inference:
 |--------:|-------|------------------|
 | v0.1 | BPE segmentation; ASCII / whitespace normalisation; byte-fallback encode | Python `sentencepiece`, ASCII corpora |
 | v0.2 | Darts charsmap normaliser → full Unicode input | + Unicode corpora (full-width, ligatures, CJK, …) |
-| **v0.3** *(current)* | Unigram Viterbi segmentation (default model type) | + Unigram model; 78 BPE+Unigram cases match |
+| **v0.3** *(current)* | Unigram Viterbi segmentation; byte-fallback + byte-piece decode | 3 models (BPE, Unigram, BPE+byte_fallback); **117 cases, encode *and* decode** |
 
-Inference is now feature-complete for both BPE and Unigram models.
+Inference is feature-complete for both BPE and Unigram models, with faithful
+decode (byte-piece reassembly, unk surface, dummy-prefix handling). Both
+directions are differentially verified against the Python oracle.
 
 ## Layout
 
@@ -65,16 +67,16 @@ cargo run --example inspect -- tests/models/botchan_1000_bpe.model
 # reference implementation, used only to produce the oracle
 python -m pip install sentencepiece
 
-# BPE model
+# For each (model, output) pair, run over the ASCII corpus (>) then the
+# Unicode corpus (>>):
+#   botchan_1000_bpe.model          -> cases.tsv          (BPE)
+#   test_oss_model_unigram.model    -> cases_unigram.tsv  (Unigram)
+#   wagahaiwa_2000_bpe_byte.model   -> cases_byte.tsv     (BPE + byte_fallback)
 python oracle/gen_oracle.py tests/models/botchan_1000_bpe.model \
     oracle/corpus_ascii.txt > oracle/cases.tsv
 python oracle/gen_oracle.py tests/models/botchan_1000_bpe.model \
     oracle/corpus_unicode.txt >> oracle/cases.tsv
-# Unigram model
-python oracle/gen_oracle.py tests/models/test_oss_model_unigram.model \
-    oracle/corpus_ascii.txt > oracle/cases_unigram.tsv
-python oracle/gen_oracle.py tests/models/test_oss_model_unigram.model \
-    oracle/corpus_unicode.txt >> oracle/cases_unigram.tsv
+# ... likewise for the Unigram and byte-fallback fixtures.
 
 cargo test
 ```
