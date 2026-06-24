@@ -6,8 +6,7 @@ C++/Python implementation.
 
 This is not a binding. The existing `sentencepiece` crate wraps Google's C++
 library; this crate reimplements the tokenisation algorithms in Rust from the
-reference source, the same way the author's other library ports (`urlparse-rs`,
-`robotparser-rs`, `fnmatch-rs`, …) reimplement their Python originals and verify
+reference source, the same way the author's other library ports/reimplement their Python originals and verify
 against them.
 
 It is also independent of the similarly named `sentencepiece-rs` crate. This code
