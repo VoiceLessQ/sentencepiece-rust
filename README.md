@@ -12,9 +12,30 @@ against them.
 
 Training is out of scope — a trained `.model` is loaded and used to tokenise.
 
-## Why it's tractable
+## Correctness Goal
 
-The scary parts of the upstream repo don't apply to inference:
+The aim of this crate is to be **provably faithful** to upstream SentencePiece —
+not merely "close enough". That goal drives everything else:
+
+- Every module is a line-by-line port of the reference file it names in its
+  header, so behaviour can be checked against the original.
+- Output is **differentially verified** against the Python `sentencepiece`
+  oracle over thousands of real-text lines, both encode *and* decode — see
+  [The Rust tokenizer test](#the-rust-tokenizer-test) and
+  [Verification breadth](#verification-breadth). A divergence from the oracle is
+  treated as a bug until proven to be an equally-optimal tie (the one documented
+  precision fence).
+
+The other properties are consequences of that discipline, not goals competing
+with it:
+
+- **Zero dependencies** — there is nothing to audit but this crate and `std`.
+- **Speed** — a welcome side effect, *measured* (see
+  [Speed](#speed)), but never traded against matching the oracle.
+
+## Why
+
+The scary parts of the upstream repo dont apply to inference:
 
 - The 138k-line `normalization_rule.h` is compile-time charsmap *generation*; a
   trained model embeds its own `precompiled_charsmap`, which we just replay.
@@ -121,7 +142,7 @@ checked 117 cases against the Python oracle: 116 exact, 1 equal-score reordering
 ```
 
 The test **self-skips green** on a fresh checkout until the `oracle/cases*.tsv`
-files exist, so `cargo test` never fails just because the oracle hasn't been
+files exist, so `cargo test` never fails just because the oracle hasnt been
 generated yet. The oracle (Python `sentencepiece`) is only used to *produce* those
 files; the test itself, and the crate, need nothing but Rust.
 
@@ -132,7 +153,7 @@ A rough throughput cross-check — [examples/bench.rs](examples/bench.rs) vs
 build, single thread (numbers from one machine; run it yourself for yours):
 
 | model / corpus | encode, Rust | encode, Py `sp` | decode, Rust | decode, Py `sp` |
-|---|---|---|---|---|
+|------------------------|-----------|-----------|---------|----------|
 | BPE / English          |  6.7 MB/s |  2.9 MB/s | 28 MB/s | 5.9 MB/s |
 | Unigram / English      | 10.0 MB/s |  4.8 MB/s | 26 MB/s | 5.5 MB/s |
 | BPE + byte / Japanese  | 24.5 MB/s |  6.2 MB/s | 50 MB/s | 6.9 MB/s |
