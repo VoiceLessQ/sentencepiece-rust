@@ -2,7 +2,7 @@
 //!
 //! Usage: cargo run --example inspect -- tests/models/botchan_1000_bpe.model
 
-use sentencepiece_rs::SentencePieceProcessor;
+use sentencepiece_rust::SentencePieceProcessor;
 
 fn main() {
     let path = std::env::args()

@@ -1,5 +1,5 @@
 [package]
-name = "sentencepiece-rs"
+name = "sentencepiece-rust"
 version = "0.0.0"
 edition = "2021"
 rust-version = "1.70"
@@ -10,7 +10,7 @@ keywords = ["sentencepiece", "tokenizer", "nlp", "bpe", "unigram"]
 categories = ["text-processing"]
 
 [lib]
-name = "sentencepiece_rs"
+name = "sentencepiece_rust"
 path = "src/lib.rs"
 
 # v0.1 deliberately has ZERO runtime dependencies:

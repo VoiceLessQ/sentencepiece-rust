@@ -7,7 +7,7 @@
 
 use std::path::Path;
 
-use sentencepiece_rs::SentencePieceProcessor;
+use sentencepiece_rust::SentencePieceProcessor;
 
 /// (model fixture, generated oracle cases) pairs.
 const SUITES: &[(&str, &str)] = &[

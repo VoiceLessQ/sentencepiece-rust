@@ -22,11 +22,11 @@
 //!
 //! # Example
 //! ```no_run
-//! use sentencepiece_rs::SentencePieceProcessor;
+//! use sentencepiece_rust::SentencePieceProcessor;
 //! let sp = SentencePieceProcessor::open("tests/models/botchan_1000_bpe.model")?;
 //! let ids = sp.encode("hello world")?;
 //! let text = sp.decode(&ids)?;
-//! # Ok::<(), sentencepiece_rs::Error>(())
+//! # Ok::<(), sentencepiece_rust::Error>(())
 //! ```
 //!
 //! [SentencePiece]: https://github.com/google/sentencepiece

@@ -1,4 +1,4 @@
-# sentencepiece-rs
+# sentencepiece-rust
 
 A from-scratch, pure-Rust port of [SentencePiece](https://github.com/google/sentencepiece)
 inference (encode/decode), differentially verified against the upstream
@@ -9,6 +9,11 @@ library; this crate reimplements the tokenisation algorithms in Rust from the
 reference source, the same way the author's other library ports (`urlparse-rs`,
 `robotparser-rs`, `fnmatch-rs`, …) reimplement their Python originals and verify
 against them.
+
+It is also independent of the similarly named `sentencepiece-rs` crate. This code
+was written from scratch against the upstream C++/Python reference. It is not a
+copy, fork, or derivative of that crate or of any other Rust port; the shared
+subject matter is all they have in common.
 
 Training is out of scope. A trained `.model` is loaded and used to tokenise.
 
