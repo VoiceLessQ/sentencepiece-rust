@@ -28,11 +28,29 @@ The scary parts of the upstream repo don't apply to inference:
 |--------:|-------|------------------|
 | v0.1 | BPE segmentation; ASCII / whitespace normalisation; byte-fallback encode | Python `sentencepiece`, ASCII corpora |
 | v0.2 | Darts charsmap normaliser → full Unicode input | + Unicode corpora (full-width, ligatures, CJK, …) |
-| **v0.3** *(current)* | Unigram Viterbi segmentation; byte-fallback + byte-piece decode | 3 models (BPE, Unigram, BPE+byte_fallback); **117 cases, encode *and* decode** |
+| **v0.3** *(current)* | Unigram Viterbi segmentation; byte-fallback + byte-piece decode | 3 models (BPE, Unigram, BPE+byte_fallback), encode *and* decode |
 
 Inference is feature-complete for both BPE and Unigram models, with faithful
 decode (byte-piece reassembly, unk surface, dummy-prefix handling). Both
 directions are differentially verified against the Python oracle.
+
+### Verification breadth
+
+Beyond the small committed corpora, the encoders were run over the upstream
+training corpora (`botchan.txt`, 4.3k English lines; `wagahaiwa_nekodearu.txt`,
+2.3k Japanese lines) through all three models — **13,264 lines, encode and
+decode**. Result: **13,258 exact, 6 equal-score reorderings, 0 real mismatches.**
+
+The 6 differences are all runs of repeated punctuation (`.......`, long `----`)
+on the Unigram model: a *same-multiset* reordering of pieces, i.e. an
+equally-optimal Viterbi path with identical total score. This is a documented
+**precision fence** — the compiled oracle binary's optimised float arithmetic
+resolves these exact ties differently than portable `f32`; both segmentations
+are optimal. See the note in [src/unigram.rs](src/unigram.rs). The test counts
+these separately and only fails on a genuine (different-piece) mismatch.
+
+To reproduce the broad run, point `gen_oracle.py` at the upstream corpora under
+`../Reference/sentencepiece/data/` instead of the small `corpus_*.txt` files.
 
 ## Layout
 

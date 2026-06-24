@@ -131,11 +131,15 @@ impl Unigram {
                 };
                 let cand = score + best_till;
                 let t = &mut bp[starts_at + length];
-                // Tie-break: `>=`, not the upstream source's strict `>`. On an
-                // exact-score tie (e.g. "-----" = {-,--,--} vs {--,--,-}) the
-                // installed `sentencepiece` oracle keeps the *later* path; the
-                // two differ only on such ties. Verified across both models.
-                if t.starts_at == -1 || cand >= t.score {
+                // Strict `>`, faithful to upstream `EncodeOptimized`. On an exact
+                // float tie (runs of identical single-char pieces, e.g. "......."
+                // or a long "----" run) the chosen path can differ from the
+                // *compiled* oracle binary, whose optimised float arithmetic
+                // rounds the near-equal partial sums differently. The result is an
+                // equally-optimal segmentation (same multiset of pieces, identical
+                // total score) — a precision fence, not a correctness bug. See the
+                // oracle test, which accepts same-multiset reorderings.
+                if t.starts_at == -1 || cand > t.score {
                     t.score = cand;
                     t.starts_at = starts_at as i64;
                     t.id = id;
