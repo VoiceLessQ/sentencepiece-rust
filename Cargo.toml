@@ -1,6 +1,6 @@
 [package]
 name = "sentencepiece-rust"
-version = "0.0.0"
+version = "0.1.0"
 edition = "2021"
 rust-version = "1.70"
 description = "From-scratch pure-Rust SentencePiece inference (encode/decode), differentially verified against the upstream C++/Python implementation."
@@ -8,6 +8,9 @@ license = "Apache-2.0"
 readme = "README.md"
 keywords = ["sentencepiece", "tokenizer", "nlp", "bpe", "unigram"]
 categories = ["text-processing"]
+repository = "https://github.com/VoiceLessQ/sentencepiece-rust"
+homepage = "https://github.com/VoiceLessQ/sentencepiece-rust"
+exclude = ["/oracle"]
 
 [lib]
 name = "sentencepiece_rust"
