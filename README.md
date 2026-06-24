@@ -99,8 +99,31 @@ python oracle/gen_oracle.py tests/models/botchan_1000_bpe.model \
 cargo test
 ```
 
-`tests/oracle.rs` is skipped (green) until `oracle/cases.tsv` exists, then asserts
-our token ids match Python's exactly for every case.
+## The Rust tokenizer test
+
+[tests/oracle.rs](tests/oracle.rs) is a plain `cargo test` integration test — pure
+Rust, no Python at run time. For each fixture model it:
+
+1. loads the `.model` with `SentencePieceProcessor` (the same public API a user
+   calls);
+2. reads the generated `oracle/cases*.tsv` (`hex(text)\t<ids>\thex(decode(ids))`);
+3. **encodes** each text and compares the ids to the oracle's, and **decodes** the
+   oracle's ids and compares the text — so both directions are checked;
+4. classifies any encode difference: a *same-multiset reordering* is an
+   equally-optimal Viterbi tie (accepted, counted separately); anything else is a
+   genuine mismatch and **fails** the test.
+
+It runs across all three fixtures (BPE, Unigram, BPE+byte_fallback) and prints a
+breakdown, e.g.:
+
+```
+checked 117 cases against the Python oracle: 116 exact, 1 equal-score reorderings, 0 real mismatches
+```
+
+The test **self-skips green** on a fresh checkout until the `oracle/cases*.tsv`
+files exist, so `cargo test` never fails just because the oracle hasn't been
+generated yet. The oracle (Python `sentencepiece`) is only used to *produce* those
+files; the test itself, and the crate, need nothing but Rust.
 
 ## License
 
