@@ -1,0 +1,11 @@
+hello world
+the quick brown fox jumps over the lazy dog
+SentencePiece is an unsupervised text tokenizer
+tokenization   with   irregular    spacing
+Numbers like 1234567890 and symbols !@#$%^&*()
+Mixed CASE words AND punctuation, here.
+a
+ab
+abc
+   leading and trailing spaces
+supercalifragilisticexpialidocious

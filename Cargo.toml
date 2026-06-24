@@ -1,0 +1,22 @@
+[package]
+name = "sentencepiece-rs"
+version = "0.0.0"
+edition = "2021"
+rust-version = "1.70"
+description = "From-scratch pure-Rust SentencePiece inference (encode/decode), differentially verified against the upstream C++/Python implementation."
+license = "Apache-2.0"
+readme = "README.md"
+keywords = ["sentencepiece", "tokenizer", "nlp", "bpe", "unigram"]
+categories = ["text-processing"]
+
+[lib]
+name = "sentencepiece_rs"
+path = "src/lib.rs"
+
+# v0.1 deliberately has ZERO runtime dependencies:
+#   * the proto2 model format is parsed by a hand-written wire reader (no prost/protoc),
+#   * BPE inference needs only the piece->id hashmap from std.
+# Later milestones (Darts charsmap normalizer, Unigram Viterbi) stay std-only too.
+[dependencies]
+
+[dev-dependencies]
