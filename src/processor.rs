@@ -105,6 +105,57 @@ impl SentencePieceProcessor {
         Ok(ids)
     }
 
+    /// Encode `text` into piece strings, faithful to `EncodeAsPieces`.
+    ///
+    /// Each piece is the normalized *surface* of its span (as in
+    /// `PopulateSentencePieceText`): for known pieces that equals the vocab piece, but unknown
+    /// pieces keep their actual characters (and a continuous run of unknowns is merged into one
+    /// piece) rather than collapsing to `<unk>`. With byte-fallback, an unknown decomposes into
+    /// its `<0xXX>` byte pieces.
+    pub fn encode_pieces(&self, text: &str) -> Result<Vec<String>> {
+        let norm = self.normalizer.normalize(text);
+        if norm.is_empty() {
+            return Ok(Vec::new());
+        }
+        let nb = norm.as_bytes();
+
+        let spans = match self.model.model_type {
+            ModelType::Bpe => bpe::encode(nb, &self.vocab),
+            ModelType::Unigram => {
+                let u = self
+                    .unigram
+                    .as_ref()
+                    .ok_or(Error::Model("unigram model not initialised".into()))?;
+                u.encode(nb, &self.vocab)
+            }
+            ModelType::Word | ModelType::Char => {
+                return Err(Error::Unsupported("Word/Char models"));
+            }
+        };
+
+        let mut out: Vec<String> = Vec::new();
+        let mut prev_unk = false;
+        for span in spans {
+            let w = std::str::from_utf8(&nb[span.start..span.start + span.len]).unwrap_or("");
+            let is_unk = span.id == self.vocab.unk_id;
+            if is_unk && self.vocab.byte_fallback {
+                for &b in &nb[span.start..span.start + span.len] {
+                    let bid = self.vocab.byte_id(b);
+                    let id = if bid >= 0 { bid } else { self.vocab.unk_id };
+                    out.push(self.vocab.id_to_piece(id).unwrap_or("").to_string());
+                }
+            } else if is_unk && prev_unk {
+                if let Some(last) = out.last_mut() {
+                    last.push_str(w);
+                }
+            } else {
+                out.push(w.to_string());
+            }
+            prev_unk = is_unk;
+        }
+        Ok(out)
+    }
+
     /// Decode a sequence of ids back into text.
     ///
     /// Faithful port of `SentencePieceProcessor::Decode`: control symbols vanish,

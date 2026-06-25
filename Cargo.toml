@@ -1,6 +1,6 @@
 [package]
 name = "sentencepiece-rust"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 rust-version = "1.70"
 description = "From-scratch pure-Rust SentencePiece inference (encode/decode), differentially verified against the upstream C++/Python implementation."
